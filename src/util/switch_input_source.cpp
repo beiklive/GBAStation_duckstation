@@ -18,7 +18,7 @@ static const GenericInputBinding s_switch_generic_axis[][2] = {
   {GenericInputBinding::RightStickUp, GenericInputBinding::RightStickDown},
 };
 
-static u64 pseudo_buttons = HidNpadButton_StickLLeft | HidNpadButton_StickLUp | HidNpadButton_StickLRight |
+static constexpr u64 pseudo_buttons = HidNpadButton_StickLLeft | HidNpadButton_StickLUp | HidNpadButton_StickLRight |
                             HidNpadButton_StickLDown | HidNpadButton_StickRLeft | HidNpadButton_StickRUp |
                             HidNpadButton_StickRRight | HidNpadButton_StickRDown;
 
@@ -191,7 +191,7 @@ void SwitchInputSource::UpdateMotorState(InputBindingKey large_key, InputBinding
       float intensity = i == 0 ? small_intensity : large_intensity;
       if (intensity != 0.f)
       {
-        if (i == 0)
+        if (i == 1)
         {
           value.freq_low = 172.f;
           value.freq_high = 260.f;
