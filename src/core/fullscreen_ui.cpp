@@ -3725,7 +3725,9 @@ void FullscreenUI::DrawControllerSettingsPage()
     const auto [mtap_port, mtap_slot] = Controller::ConvertPadToPortAndSlot(global_slot);
     const bool is_mtap_port = Controller::PortAndSlotIsMultitap(mtap_port, mtap_slot);
     if (is_mtap_port && !mtap_enabled[mtap_port])
-      continue;
+    continue;
+
+    ImGui::PushID(global_slot);
 
     if (mtap_enabled[mtap_port])
     {
@@ -3767,8 +3769,10 @@ void FullscreenUI::DrawControllerSettingsPage()
                        });
     }
 
-    if (!ci || ci->bindings.empty())
+    if (!ci || ci->bindings.empty()) {
+      ImGui::PopID();
       continue;
+    }
 
     if (MenuButton(FSUI_ICONSTR(ICON_FA_MAGIC, "Automatic Mapping"),
                    FSUI_CSTR("Attempts to map the selected port to a chosen controller.")))
@@ -3970,6 +3974,8 @@ void FullscreenUI::DrawControllerSettingsPage()
         }
       }
     }
+
+    ImGui::PopID();
   }
 
   EndMenuButtons();
