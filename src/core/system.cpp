@@ -45,10 +45,6 @@
 #include "util/postprocessing.h"
 #include "util/state_wrapper.h"
 
-#ifdef __SWITCH__
-#include "tico/TicoDuckBridge.h"
-#endif
-
 #include "common/align.h"
 #include "common/error.h"
 #include "common/file_system.h"
@@ -4947,10 +4943,6 @@ bool System::PresentDisplay(bool allow_skip_present, bool explicit_present)
       ImGuiManager::RenderSoftwareCursors();
 #endif
   }
-
-#ifdef __SWITCH__
-  TicoDuck::RenderOverlay();
-#endif
 
 #ifndef __SWITCH__
   // Debug windows are always rendered, otherwise mouse input breaks on skip.

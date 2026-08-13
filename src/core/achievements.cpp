@@ -34,10 +34,6 @@
 #include "util/platform_misc.h"
 #include "util/state_wrapper.h"
 
-#ifdef __SWITCH__
-#include "tico/TicoDuckBridge.h"
-#endif
-
 #include "IconsFontAwesome5.h"
 #include "IconsPromptFont.h"
 #include "fmt/format.h"
@@ -51,9 +47,7 @@
 #include <cstdarg>
 #include <cstdlib>
 #include <ctime>
-#include <fstream>
 #include <functional>
-#include <sstream>
 #include <string>
 #include <vector>
 
@@ -181,9 +175,6 @@ static void DisplayAchievementSummary();
 static void PreloadAchievementBadges();
 static void UpdateRichPresence(std::unique_lock<std::recursive_mutex>& lock);
 static bool ShouldUseFullscreenUI();
-#ifdef __SWITCH__
-static void SaveTicoRAToken(const char* token);
-#endif
 
 static void LeaderboardFetchNearbyCallback(int result, const char* error_message,
                                            rc_client_leaderboard_entry_list_t* list, rc_client_t* client,
@@ -345,101 +336,6 @@ bool Achievements::ShouldUseFullscreenUI()
   return FullscreenUI::Initialize();
 #endif
 }
-
-#ifdef __SWITCH__
-static std::string EscapeTicoJsonString(const char* value)
-{
-  std::string escaped;
-  if (!value)
-    return escaped;
-
-  for (const char* ch = value; *ch; ch++)
-  {
-    if (*ch == '"' || *ch == '\\')
-      escaped.push_back('\\');
-    escaped.push_back(*ch);
-  }
-
-  return escaped;
-}
-
-static bool FindTicoJsonStringBounds(const std::string& text, const char* key, size_t& value_begin, size_t& value_end)
-{
-  const std::string pattern = std::string("\"") + key + "\"";
-  const size_t key_pos = text.find(pattern);
-  if (key_pos == std::string::npos)
-    return false;
-
-  const size_t colon_pos = text.find(':', key_pos + pattern.size());
-  if (colon_pos == std::string::npos)
-    return false;
-
-  const size_t quote_pos = text.find('"', colon_pos + 1);
-  if (quote_pos == std::string::npos)
-    return false;
-
-  bool escape = false;
-  for (size_t i = quote_pos + 1; i < text.size(); i++)
-  {
-    const char ch = text[i];
-    if (escape)
-    {
-      escape = false;
-      continue;
-    }
-    if (ch == '\\')
-    {
-      escape = true;
-      continue;
-    }
-    if (ch == '"')
-    {
-      value_begin = quote_pos + 1;
-      value_end = i;
-      return true;
-    }
-  }
-
-  return false;
-}
-
-void Achievements::SaveTicoRAToken(const char* token)
-{
-  if (!token || token[0] == 0)
-    return;
-
-  std::ifstream input("sdmc:/tico/config/accounts.jsonc");
-  std::ostringstream ss;
-  if (input.is_open())
-    ss << input.rdbuf();
-
-  std::string text = ss.str();
-  if (text.find('{') == std::string::npos || text.find('}') == std::string::npos)
-    text = "{\n}\n";
-
-  const std::string escaped_token = EscapeTicoJsonString(token);
-  size_t value_begin = 0;
-  size_t value_end = 0;
-  if (FindTicoJsonStringBounds(text, "ra_token", value_begin, value_end))
-  {
-    text.replace(value_begin, value_end - value_begin, escaped_token);
-  }
-  else
-  {
-    const size_t object_end = text.rfind('}');
-    const bool has_existing_entry = text.find(':') != std::string::npos && text.find(':') < object_end;
-    std::string insertion = has_existing_entry ? ",\n" : "\n";
-    insertion += "    \"ra_token\": \"";
-    insertion += escaped_token;
-    insertion += "\"\n";
-    text.insert(object_end, insertion);
-  }
-
-  std::ofstream output("sdmc:/tico/config/accounts.jsonc");
-  if (output.is_open())
-    output << text;
-}
-#endif
 
 bool Achievements::IsActive()
 {
@@ -1028,13 +924,6 @@ void Achievements::ClientLoadGameCallback(int result, const char* error_message,
   {
     // Unknown game.
     Log_InfoPrintf("Unknown game '%s', disabling achievements.", s_game_hash.c_str());
-#ifdef __SWITCH__
-    if (g_settings.achievements_notifications)
-    {
-      TicoDuck::PushRANotification("RetroAchievements", "Rom hash doesn't match or unable to recognize the game.",
-                                   "ra_icon", ACHIEVEMENT_SUMMARY_NOTIFICATION_TIME);
-    }
-#endif
     DisableHardcoreMode();
     return;
   }
@@ -1101,13 +990,6 @@ void Achievements::ClientLoadGameCallback(int result, const char* error_message,
   PreloadAchievementBadges();
   DisplayAchievementSummary();
 
-#ifdef __SWITCH__
-  if (g_settings.achievements_notifications)
-  {
-    TicoDuck::PushRANotification("RetroAchievements", fmt::format("Playing: {}", s_game_title),
-                                 s_game_icon.empty() ? "ra_icon" : s_game_icon, ACHIEVEMENT_SUMMARY_NOTIFICATION_TIME);
-  }
-#endif
 
   Host::OnAchievementsRefreshed();
 }
@@ -1242,11 +1124,6 @@ void Achievements::HandleUnlockEvent(const rc_client_event_t* event)
       title = cheevo->title;
 
     std::string badge_path = GetAchievementBadgePath(cheevo, cheevo->state);
-#ifdef __SWITCH__
-    TicoDuck::PushRANotification(title, cheevo->description, badge_path,
-                                 static_cast<float>(g_settings.achievements_notification_duration));
-#endif
-
     if (ShouldUseFullscreenUI())
     {
       ImGuiFullscreen::AddNotification(fmt::format("achievement_unlock_{}", cheevo->id),
@@ -1258,9 +1135,6 @@ void Achievements::HandleUnlockEvent(const rc_client_event_t* event)
   if (g_settings.achievements_sound_effects)
   {
     PlatformMisc::PlaySoundAsync(EmuFolders::GetOverridableResourcePath(UNLOCK_SOUND_NAME).c_str());
-#ifdef __SWITCH__
-    TicoDuck::PlayRATrophySound();
-#endif
   }
 }
 
@@ -1275,20 +1149,11 @@ void Achievements::HandleGameCompleteEvent(const rc_client_event_t* event)
     std::string message = fmt::format(TRANSLATE_FS("Achievements", "{} achievements, {} points"),
                                       s_game_summary.num_unlocked_achievements, s_game_summary.points_unlocked);
 
-#ifdef __SWITCH__
-    TicoDuck::PushRANotification(title, message, s_game_icon.empty() ? "ra_icon" : s_game_icon,
-                                 GAME_COMPLETE_NOTIFICATION_TIME);
-#endif
-
     if (ShouldUseFullscreenUI())
       ImGuiFullscreen::AddNotification("achievement_mastery", GAME_COMPLETE_NOTIFICATION_TIME, std::move(title),
                                        std::move(message), s_game_icon);
   }
 
-#ifdef __SWITCH__
-  if (g_settings.achievements_sound_effects)
-    TicoDuck::PlayRATrophySound();
-#endif
 }
 
 void Achievements::HandleLeaderboardStartedEvent(const rc_client_event_t* event)
@@ -1888,10 +1753,6 @@ void Achievements::ClientLoginWithPasswordCallback(int result, const char* error
   Host::SetBaseStringSettingValue("Cheevos", "Token", user->token);
   Host::SetBaseStringSettingValue("Cheevos", "LoginTimestamp", fmt::format("{}", std::time(nullptr)).c_str());
   Host::CommitBaseSettingChanges();
-#ifdef __SWITCH__
-  SaveTicoRAToken(user->token);
-#endif
-
   ShowLoginSuccess(client);
 }
 
@@ -1919,10 +1780,6 @@ void Achievements::ClientLoginWithPasswordAsyncCallback(int result, const char* 
   Host::SetBaseStringSettingValue("Cheevos", "Token", user->token);
   Host::SetBaseStringSettingValue("Cheevos", "LoginTimestamp", fmt::format("{}", std::time(nullptr)).c_str());
   Host::CommitBaseSettingChanges();
-#ifdef __SWITCH__
-  SaveTicoRAToken(user->token);
-#endif
-
   ShowLoginSuccess(client);
 
   if (System::IsValid())

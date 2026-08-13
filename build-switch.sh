@@ -17,7 +17,7 @@ case "$MODE" in
     TARGET="duckstation-nogui.elf"
     ;;
   nro)
-    TARGET="tico-duckstation.nro"
+    TARGET="GBAStationDuckStationStub.nro"
     ;;
   all)
     TARGET=""

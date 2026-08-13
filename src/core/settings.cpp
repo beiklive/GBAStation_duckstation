@@ -1864,19 +1864,19 @@ std::string EmuFolders::UserResources;
 void EmuFolders::SetDefaults()
 {
 #ifdef __SWITCH__
-  Bios = "sdmc:/tico/system/psx";
-  Cache = "sdmc:/tico/cache/duckstation";
-  Cheats = "sdmc:/tico/system/psx/cheats";
-  Covers = "sdmc:/tico/assets/covers/psx";
-  Dumps = "sdmc:/tico/cache/duckstation/dumps";
-  GameSettings = "sdmc:/tico/config/duckstation/gamesettings";
-  InputProfiles = "sdmc:/tico/config/duckstation/inputprofiles";
-  MemoryCards = "sdmc:/tico/saves/psx";
-  SaveStates = "sdmc:/tico/states/psx";
-  Screenshots = "sdmc:/tico/screenshots/psx";
-  Shaders = "sdmc:/tico/config/duckstation/shaders";
-  Textures = "sdmc:/tico/textures/psx";
-  UserResources = "sdmc:/tico/config/duckstation/resources";
+  Bios = "sdmc:/GBAStation/bios/ps1";
+  Cache = "sdmc:/GBAStation/ps1/cache";
+  Cheats = "sdmc:/GBAStation/ps1/cheats";
+  Covers = "sdmc:/GBAStation/ps1/covers";
+  Dumps = "sdmc:/GBAStation/ps1/dumps";
+  GameSettings = "sdmc:/GBAStation/ps1/gamesettings";
+  InputProfiles = "sdmc:/GBAStation/ps1/inputprofiles";
+  MemoryCards = "sdmc:/GBAStation/ps1/memcards";
+  SaveStates = "sdmc:/GBAStation/ps1/states";
+  Screenshots = "sdmc:/GBAStation/ps1/screenshots";
+  Shaders = "sdmc:/GBAStation/ps1/cache/shaders";
+  Textures = "sdmc:/GBAStation/ps1/textures";
+  UserResources = "sdmc:/GBAStation/ps1/resources";
 #else
   Bios = Path::Combine(DataRoot, "bios");
   Cache = Path::Combine(DataRoot, "cache");
