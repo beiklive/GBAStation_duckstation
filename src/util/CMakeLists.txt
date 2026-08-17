@@ -264,6 +264,13 @@ elseif(NOT ANDROID AND NOT NINTENDO_SWITCH)
     target_link_libraries(util PRIVATE UDEV::UDEV)
   endif()
 elseif(NINTENDO_SWITCH)
+  if (DEFINED UAM_PREFIX)
+    get_filename_component(UAM_PREFIX_ABSOLUTE "${UAM_PREFIX}" ABSOLUTE
+      BASE_DIR "${CMAKE_BINARY_DIR}")
+    target_include_directories(util PRIVATE "${UAM_PREFIX_ABSOLUTE}/include")
+    target_link_libraries(util PRIVATE "${UAM_PREFIX_ABSOLUTE}/lib/libuam.a")
+  endif()
+
   target_sources(util PRIVATE
     platform_misc_switch.cpp
     switch_input_source.cpp

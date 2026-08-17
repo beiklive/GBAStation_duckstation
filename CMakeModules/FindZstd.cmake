@@ -20,10 +20,16 @@
 # Zstd_LIBRARY
 #
 
-find_path(Zstd_INCLUDE_DIR NAMES zstd.h)
+find_package(PkgConfig QUIET)
+pkg_check_modules(PC_ZSTD QUIET libzstd)
 
-find_library(Zstd_LIBRARY_DEBUG NAMES zstdd zstd_staticd)
-find_library(Zstd_LIBRARY_RELEASE NAMES zstd zstd_static)
+find_path(Zstd_INCLUDE_DIR NAMES zstd.h
+  HINTS ${PC_ZSTD_INCLUDEDIR} ${PC_ZSTD_INCLUDE_DIRS})
+
+find_library(Zstd_LIBRARY_DEBUG NAMES zstdd zstd_staticd
+  HINTS ${PC_ZSTD_LIBDIR} ${PC_ZSTD_LIBRARY_DIRS})
+find_library(Zstd_LIBRARY_RELEASE NAMES zstd zstd_static
+  HINTS ${PC_ZSTD_LIBDIR} ${PC_ZSTD_LIBRARY_DIRS})
 
 include(SelectLibraryConfigurations)
 SELECT_LIBRARY_CONFIGURATIONS(Zstd)

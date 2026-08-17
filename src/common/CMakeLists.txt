@@ -109,10 +109,13 @@ endif()
 if (NINTENDO_SWITCH)
   # switch curl depends on libnx, so we have to link it here...
   if (DEFINED UAM_PREFIX)
-    target_include_directories(common PRIVATE "${UAM_PREFIX}/include")
-    target_link_directories(common PRIVATE "${UAM_PREFIX}/lib")
+    get_filename_component(UAM_PREFIX_ABSOLUTE "${UAM_PREFIX}" ABSOLUTE
+      BASE_DIR "${CMAKE_BINARY_DIR}")
+    target_include_directories(common PRIVATE "${UAM_PREFIX_ABSOLUTE}/include")
+    target_link_libraries(common PRIVATE "${UAM_PREFIX_ABSOLUTE}/lib/libuam.a" "${NX_LIBRARIES}")
+  else()
+    target_link_libraries(common PRIVATE uam "${NX_LIBRARIES}")
   endif()
-  target_link_libraries(common PRIVATE uam "${NX_LIBRARIES}")
 endif()
 
 if(ANDROID)

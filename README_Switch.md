@@ -6,10 +6,17 @@ To use it put the switch folder from the 7z file onto the root of your SD card, 
 
 Alternatively you can also put the tico-duckstation folder wherever you like.
 
-## Building
+## Local Switch build
 
-Requires devkitA64, libnx, deko3D, [my uam fork](https://github.com/RSDuck/uam/tree/library-target) which allows compiling shaders at runtime and the Switch CMake package. Also a bunch of portlibs package I forgot to write down. Install them as errors pop up.
+Local builds run directly in an MSYS2 UCRT64 shell; Docker is only used by
+GitHub Actions. Install devkitPro's Switch toolchain and portlibs, then install
+CMake, Ninja, Git, Bison, Flex, pkg-config, Meson, Python 3 and Python Mako in
+MSYS2.
 
 ```bash
-$ /opt/devkitpro/portlibs/switch/bin/aarch64-none-elf-cmake -G "Ninja" -DBUILD_NOGUI_FRONTEND=ON -DBUILD_QT_FRONTEND=OFF -DENABLE_OPENGL=OFF -DENABLE_VULKAN=OFF -DENABLE_CUBEB=OFF -DCMAKE_DISABLE_PRECOMPILE_HEADERS=ON  ../..
+./build_local.sh -j "$(nproc)"
 ```
+
+The script downloads and builds the required UAM library on its first run. The
+result is `build-local/GBAStationDuckStationStub.nro`. Use `--clean` for a
+fresh build, or set `BUILD_DIR` to choose another output directory.
