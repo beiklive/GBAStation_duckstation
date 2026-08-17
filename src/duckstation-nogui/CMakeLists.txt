@@ -19,6 +19,8 @@ if(NINTENDO_SWITCH)
     ../gbastation/GBAStationHost.cpp
     ../gbastation/GBAStationHost.h
     ../gbastation/GBAStationPaths.h
+    ../tico/TicoDuckBridge.cpp
+    ../tico/TicoDuckBridge.h
   )
   target_link_libraries(duckstation-nogui PUBLIC "${NX_LIBRARIES}")
 
