@@ -8,11 +8,17 @@ JOBS="${JOBS:-$(nproc)}"
 UAM_PREFIX="${UAM_PREFIX:-$BUILD_DIR/uam}"
 CLEAN=0
 
+# devkitPro's CMake toolchain emits POSIX paths. Use MSYS CMake/Ninja even
+# when launched from UCRT64, otherwise native ninja.exe cannot resolve /e/... .
+if [[ "$(uname -o 2>/dev/null || true)" == "Msys" ]]; then
+  export PATH="/usr/bin:/bin:$PATH"
+fi
+
 usage() {
   cat <<'EOF'
 Usage: ./build_local.sh [-j JOBS] [--clean]
 
-Requires an MSYS2 UCRT64 shell with devkitPro Switch tools, CMake, Ninja,
+Requires an MSYS2 shell with devkitPro Switch tools, CMake, Ninja,
 Meson, Git, Bison, Flex, pkg-config and python-mako installed.
 Output: build-local/GBAStationDuckStationStub.nro (or $BUILD_DIR when set).
 EOF
@@ -29,10 +35,10 @@ done
 
 export DEVKITPRO="${DEVKITPRO:-/opt/devkitpro}"
 for tool in cmake ninja meson git bison flex pkg-config python3; do
-  command -v "$tool" >/dev/null 2>&1 || { echo "Missing $tool in MSYS2 UCRT64." >&2; exit 1; }
+  command -v "$tool" >/dev/null 2>&1 || { echo "Missing $tool in MSYS2." >&2; exit 1; }
 done
 python3 -c 'import mako' >/dev/null 2>&1 || {
-  echo "Missing Python Mako in MSYS2 UCRT64." >&2; exit 1;
+  echo "Missing Python Mako in MSYS2." >&2; exit 1;
 }
 [[ -x "$DEVKITPRO/portlibs/switch/bin/aarch64-none-elf-cmake" ]] || {
   echo "Missing devkitPro Switch CMake toolchain under $DEVKITPRO." >&2; exit 1;
