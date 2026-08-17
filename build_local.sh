@@ -28,9 +28,12 @@ while [[ $# -gt 0 ]]; do
 done
 
 export DEVKITPRO="${DEVKITPRO:-/opt/devkitpro}"
-for tool in cmake ninja meson git bison flex pkg-config; do
+for tool in cmake ninja meson git bison flex pkg-config python3; do
   command -v "$tool" >/dev/null 2>&1 || { echo "Missing $tool in MSYS2 UCRT64." >&2; exit 1; }
 done
+python3 -c 'import mako' >/dev/null 2>&1 || {
+  echo "Missing Python Mako in MSYS2 UCRT64." >&2; exit 1;
+}
 [[ -x "$DEVKITPRO/portlibs/switch/bin/aarch64-none-elf-cmake" ]] || {
   echo "Missing devkitPro Switch CMake toolchain under $DEVKITPRO." >&2; exit 1;
 }
