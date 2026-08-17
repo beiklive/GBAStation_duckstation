@@ -1,0 +1,46 @@
+name: Build GBAStation DuckStation Switch core
+
+on:
+  push:
+    branches: [master, main]
+    tags: ['v*']
+    paths:
+      - 'src/**'
+      - 'dep/**'
+      - 'CMakeLists.txt'
+      - 'CMakeModules/**'
+      - 'build-switch.sh'
+      - '.github/workflows/build-switch.yml'
+  pull_request:
+    paths:
+      - 'src/**'
+      - 'dep/**'
+      - 'CMakeLists.txt'
+      - 'CMakeModules/**'
+      - 'build-switch.sh'
+      - '.github/workflows/build-switch.yml'
+  workflow_dispatch:
+
+jobs:
+  build-switch:
+    permissions:
+      contents: write
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build NRO
+        run: ./build-switch.sh nro
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: GBAStationDuckStationStub
+          path: build-switch/GBAStationDuckStationStub.nro
+          if-no-files-found: error
+
+      - name: Publish GitHub Release
+        if: startsWith(github.ref, 'refs/tags/v')
+        uses: softprops/action-gh-release@v2
+        with:
+          files: build-switch/GBAStationDuckStationStub.nro

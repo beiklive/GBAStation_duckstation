@@ -6,6 +6,23 @@ IMAGE="${IMAGE:-devkitpro/devkita64}"
 BUILD_DIR="${BUILD_DIR:-build-switch}"
 MODE="${1:-core}"
 
+# Docker Desktop's executable is not always added to an MSYS2 shell PATH.
+# Keep the normal Linux/macOS path first, then support its default Windows
+# installation so this script remains the single local build entry point.
+if command -v docker >/dev/null 2>&1; then
+  DOCKER=(docker)
+elif [ -x "/c/Program Files/Docker/Docker/resources/bin/docker.exe" ]; then
+  DOCKER=("/c/Program Files/Docker/Docker/resources/bin/docker.exe")
+else
+  echo "Docker is required to build the Switch core." >&2
+  exit 1
+fi
+
+MOUNT_ROOT="$ROOT"
+if command -v cygpath >/dev/null 2>&1; then
+  MOUNT_ROOT="$(cygpath -w "$ROOT")"
+fi
+
 case "$MODE" in
   core)
     TARGET="src/core/libcore.a"
@@ -32,12 +49,12 @@ case "$MODE" in
     ;;
 esac
 
-docker run --rm \
+MSYS_NO_PATHCONV=1 "${DOCKER[@]}" run --rm \
   -e HOST_UID="$(id -u)" \
   -e HOST_GID="$(id -g)" \
   -e BUILD_DIR="$BUILD_DIR" \
   -e TARGET="$TARGET" \
-  -v "$ROOT:/project/source" \
+  -v "$MOUNT_ROOT:/project/source" \
   --workdir /project/source \
   "$IMAGE" \
   bash -lc '
