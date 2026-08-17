@@ -9,7 +9,7 @@ on:
       - 'dep/**'
       - 'CMakeLists.txt'
       - 'CMakeModules/**'
-      - 'build-switch.sh'
+      - 'build_local.sh'
       - '.github/workflows/build-switch.yml'
   pull_request:
     paths:
@@ -17,7 +17,7 @@ on:
       - 'dep/**'
       - 'CMakeLists.txt'
       - 'CMakeModules/**'
-      - 'build-switch.sh'
+      - 'build_local.sh'
       - '.github/workflows/build-switch.yml'
   workflow_dispatch:
 
@@ -27,11 +27,18 @@ jobs:
       contents: write
     runs-on: ubuntu-latest
     timeout-minutes: 120
+    container:
+      image: devkitpro/devkita64:latest
     steps:
       - uses: actions/checkout@v4
 
+      - name: Install build tools
+        run: |
+          apt-get update
+          apt-get install -y --no-install-recommends bison flex git meson ninja-build pkg-config python3-mako
+
       - name: Build NRO
-        run: ./build-switch.sh nro
+        run: BUILD_DIR=build-switch ./build_local.sh -j 2
 
       - uses: actions/upload-artifact@v4
         with:

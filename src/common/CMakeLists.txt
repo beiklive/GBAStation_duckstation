@@ -108,6 +108,10 @@ endif()
 
 if (NINTENDO_SWITCH)
   # switch curl depends on libnx, so we have to link it here...
+  if (DEFINED UAM_PREFIX)
+    target_include_directories(common PRIVATE "${UAM_PREFIX}/include")
+    target_link_directories(common PRIVATE "${UAM_PREFIX}/lib")
+  endif()
   target_link_libraries(common PRIVATE uam "${NX_LIBRARIES}")
 endif()
 
