@@ -51,9 +51,34 @@ std::string Trim(std::string_view value)
 std::string DecodeConfigValue(std::string_view value)
 {
   std::string decoded = Trim(value);
-  if (decoded.starts_with("s|"))
+  // The shared config file stores scalar values with a type prefix.  Core
+  // settings such as resolutionScale are integers, so accepting s| alone
+  // silently made them fall back to defaults.
+  if (decoded.starts_with("i|") || decoded.starts_with("f|") || decoded.starts_with("s|"))
     decoded.erase(0, 2);
-  return decoded;
+
+  std::string unescaped;
+  unescaped.reserve(decoded.size());
+  bool escaped = false;
+  for (const char ch : decoded)
+  {
+    if (escaped)
+    {
+      unescaped.push_back(ch);
+      escaped = false;
+    }
+    else if (ch == '\\')
+    {
+      escaped = true;
+    }
+    else
+    {
+      unescaped.push_back(ch);
+    }
+  }
+  if (escaped)
+    unescaped.push_back('\\');
+  return unescaped;
 }
 
 std::map<std::string, std::string> LoadConfig()
